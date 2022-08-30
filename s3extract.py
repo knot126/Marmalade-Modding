@@ -182,15 +182,18 @@ def extract_dz(input, output):
 	
 	f = File(input)
 	
+	# Verify the header
 	if (not f.verifyHeader(b"DTRZ")):
 		print("Error: This file is not a valid DTRZ (*.dz) archive.")
 		return
 	
+	# Read rest of header
 	file_count = f.readUInt16()
-	unknown_bytes = f.readBytes(3) # I think the last byte is a 0 length string
+	folder_count = f.readUInt16() - 1 # Number of strings to skip at the end
+	assert(f.readBytes(1) == b'\x00') # Unused string (?)
 	
 	print(f"File count: {file_count}")
-	print(f"Next three unknown bytes: {unknown_bytes}")
+	print(f"Folder count: {folder_count}")
 	
 	# Read file names
 	filenames = []
@@ -198,19 +201,29 @@ def extract_dz(input, output):
 	for i in range(file_count):
 		filenames.append(f.readString())
 	
-	# HACK
-	# 
-	# We have to read another string because this format doesn't handle
-	# subdirectories properly. This is a hack that will only work for Bubble
-	# Mania and maybe other things. Should probably look in bundled.txt before
-	# this hack, but this works for now.
-	f.readString()
+	# Read folder names (index zero is root)
+	folders = [""]
+	
+	for i in range(folder_count):
+		folder_name = f.readString()
+		folders.append(folder_name)
+		
+		print(f"Folder: [{i + 1}] = '{folder_name}'")
+	
+	# Create output folder structure
+	os.makedirs(output, exist_ok = True)
+	
+	for fname in folders:
+		os.makedirs(output + "/" + fname, exist_ok = True)
 	
 	# Read file attributes (don't know what any of this does, attributes is just a guess)
 	attributes = []
 	
 	for i in range(file_count):
-		attributes.append(f.readBytes(6))
+		folder = f.readUInt16() # The folder index
+		number = f.readUInt16() # The number of the file, starting from zero
+		flags = f.readUInt16() # Not really known but probably flags
+		attributes.append((folder, number, flags))
 	
 	# Read lengths header (not sure what everything is)
 	unknown_bytes_length = f.readBytes(2)
@@ -251,14 +264,15 @@ def extract_dz(input, output):
 		filename = filenames[i]
 		
 		# Use the difference between the offsets so gzip doesn't go insane
+		# TODO: Probably make this work properly
 		data = f.getCompressedData(lengths[i][0], lengths[i + 1][0] - lengths[i][0])
 		
 		# Write file out
-		writeBytesToFile(output + "/" + filename, data)
+		writeBytesToFile(output + "/" + folders[attributes[i][0]] + "/" + filename, data)
 	
 	# print some metadata
 	for i in range(file_count):
-		print(f"File: '{filenames[i]}' {attributes[i]} {lengths[i]}")
+		print(f"File: [{i}] = name '{filenames[i]}' flags {hex(attributes[i][2])} at {lengths[i]}")
 
 def extract(input, output):
 	"""
