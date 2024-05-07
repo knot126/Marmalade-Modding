@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-s3e (XE3U) and dz (DTRZ) archive extractor
+dz (DTRZ) archive extractor
 
 Tested only on Bubble Mania v1.8.2.2 for Android
 """
@@ -11,6 +11,7 @@ import json
 import struct
 import gzip # NOTE: You should use the modded version!
 import zlib
+from pathlib import PurePath
 
 class File:
 	"""
@@ -157,24 +158,6 @@ def writeBytesToFile(filename, content):
 	f.write(content)
 	f.close()
 
-def extract_s3e(input, output):
-	"""
-	S3E file extraction
-	"""
-	
-	f = File(input, use_gzip = True)
-	
-	if (not f.verifyHeader(b"XE3U")):
-		print("Error: This file is not a valid XE3U (*.s3e) archive.")
-		return
-	
-	print(f"Dummy value 1: {f.readBytes(4)}")
-	
-	file_count = f.readUInt32()
-	archive_size = f.readUInt32()
-	
-	print(f"File count: {file_count}\nArchive size: {archive_size}")
-
 def extract_dz(input, output):
 	"""
 	DZ file extraction
@@ -273,6 +256,16 @@ def extract_dz(input, output):
 	# print some metadata
 	for i in range(file_count):
 		print(f"File: [{i}] = name '{filenames[i]}' flags {hex(attributes[i][2])} at {lengths[i]}")
+	
+	# write a dcl
+	dcl = open(f"{output}.dcl", "w")
+	dcl.write(f"archive {str(PurePath(input).name)}\n")
+	dcl.write(f"basedir {str(PurePath(output).name)}\n\n")
+	
+	for i in range(file_count):
+		dcl.write(f"file {(folders[attributes[i][0]] + '/' if folders[attributes[i][0]] else '') + filenames[i]} 0 zlib\n")
+	
+	dcl.close()
 
 def extract(input, output):
 	"""
@@ -287,12 +280,14 @@ def extract(input, output):
 	
 	if (header == b"DTRZ"):
 		extract_dz(input, output)
-	elif (header == b"\x1f\x8b\x08\x00"):
-		extract_s3e(input, output)
 	else:
 		print("Could not detect archive type.")
 
 def main():
+	if (len(sys.argv) != 3):
+		print(f"Usage: {sys.argv[0]} <INPUT DZ> <OUTPUT DIR>")
+		exit(127)
+	
 	input = sys.argv[1]
 	output = sys.argv[2]
 	

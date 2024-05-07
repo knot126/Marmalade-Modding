@@ -73,4 +73,5 @@ Compressed data can be stored in many formats, so for now I just assume it's usi
 
 ## More info
 
-See [README from dzip.txt](README from dzip.txt) for info on compression formats from the official archiving tool.
+* See [README from dzip.txt](README from dzip.txt) for info on compression formats from the official archiving tool.
+* https://web.archive.org/web/20160327093608/http://docs.madewithmarmalade.com/display/MD/dzip+and+Derbh
