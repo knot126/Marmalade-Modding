@@ -12,6 +12,21 @@ From [Book 1]:
 > see later in this book, there are a great many APIs that are prefixed with
 > this name.
 
+## Run the SDK without a licence
+
+1. Install the SDK like normal.
+2. Follow the archived guide to patching Marmalade to run without a licence server.
+3. Try to activate using a junk key and email. (This might not be needed.)
+4. Run the following command in the `s3e/bin` dir:
+
+```cmd
+iwlicense.exe --verbose --activate --key=12345
+```
+
+5. Done!
+
+(It seems like it's functionally a self-crack lol)
+
 ## Books
 
 1. *[Marmalade SDK Mobile Game Development Essentials](https://www.packtpub.com/product/marmalade-sdk-mobile-game-development-essentials/9781849693363)* (2012, published by Packt)
