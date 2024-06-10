@@ -22,7 +22,7 @@ def main():
 	if (old_format):
 		print(f"version      = {hex(header[1])} ({header[1] >> 12}.{header[1] & 0xff})")
 	else:
-		print(f"version      = {hex(header[1])} ({header[1] >> 16}.{header[1] >> 8}.{header[1] & 0xff})")
+		print(f"version      = {hex(header[1])} ({header[1] >> 16}.{(header[1] >> 8) & 0xff}.{header[1] & 0xff})")
 	print(f"flags        = {bin(header_short[2 * 2 + 0])}")
 	if (old_format):
 		print(f"arch         = {hex(header_short[2 * 2 + 1])}")

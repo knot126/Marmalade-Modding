@@ -30,7 +30,7 @@ struct s3eHeader {
 };
 ```
 
-Note: If `(version >> 16) & 0xff` is not zero then the format is slightly different to accomidate for platforms that have an optional vector floating point unit. More specifically, it is:
+If `(version >> 16) & 0xff` is not zero then version is `major.minor.patch` (major << 16 | minor << 8 | patch), arch is actually `arch & 0xff` and `arch >> 8` stores if the app requires a floating point unit. In the other case, the version is `major.minor` (major << 8 | minor) and arch is the actual arch value.
 
 This seems to be followed by the extended header.
 
