@@ -12,8 +12,8 @@ Taken from log messages left over in `libs3e_android.so`.
 struct s3eHeader {
 	int ident;
 	int version;
-	int flags;
-	int arch;
+	short flags;
+	short arch;
 	int fixupOffset;
 	int fixupSize;
 	int codeOffset;
@@ -29,6 +29,8 @@ struct s3eHeader {
 	int extraSize;
 };
 ```
+
+Note: If `(version >> 16) & 0xff` is not zero then the format is slightly different to accomidate for platforms that have an optional vector floating point unit. More specifically, it is:
 
 This seems to be followed by the extended header.
 
