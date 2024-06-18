@@ -36,7 +36,13 @@ This seems to be followed by the extended header.
 
 ### Extended Header
 
-Starts with an `int` for the size of ext. header.
+```c
+struct s3eExtendedHeader {
+	int extHeaderSize; // size of extended header
+	int loadedCodeSize;
+	int unknown2; // Seems like it only controls if an app splash is shown on startup
+};
+```
 
 ## See also
 

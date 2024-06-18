@@ -4,7 +4,7 @@ Print out basic info about a uncompressed s3e's header
 """
 
 import struct
-import sys
+import argparse
 
 def hexdump(data, perline = 16):
 	"""
@@ -29,10 +29,12 @@ def hexdump(data, perline = 16):
 	return result
 
 def main():
-	if (len(sys.argv) < 2):
-		print(f"Usage: {sys.argv[0]} <s3e file>")
+	parser = argparse.ArgumentParser()
+	parser.add_argument("file", help="An uncompressed s3e file to parse")
+	parser.add_argument("--fixup", help="Dump the fixup table into a .fixup file", action="store_true")
+	args = parser.parse_args()
 	
-	f = open(sys.argv[1], "rb")
+	f = open(args.file, "rb")
 	
 	# Basic header
 	basic_bytes = f.read(0x40)
@@ -53,8 +55,10 @@ def main():
 	else:
 		print(f"arch         = {hex(header_short[2 * 2 + 1] & 0xff)}")
 		print(f"vfp          = {hex(header_short[2 * 2 + 1] >> 8)}")
-	print(f"fixupOffset  = {hex(header[3])}")
-	print(f"fixupSize    = {hex(header[4])}")
+	fixupOffset = header[3]
+	print(f"fixupOffset  = {hex(fixupOffset)}")
+	fixupSize = header[4]
+	print(f"fixupSize    = {hex(fixupSize)}")
 	print(f"codeOffset   = {hex(header[5])}")
 	print(f"codeFileSize = {hex(header[6])}")
 	print(f"codeMemSize  = {hex(header[7])}")
@@ -72,8 +76,17 @@ def main():
 	
 	ext_length = memoryview(f.read(4)).cast("I")[0]
 	print(f"extended header length = {hex(ext_length)}")
-	print(f"hexdump of extended header:")
-	print(hexdump(f.read(ext_length - 4)), end="")
+	ext_header = memoryview(f.read(ext_length - 4)).cast("I")
+	# note: these are both in the code section, for some reason
+	print(f"loaded code size       = {hex(ext_header[0])} ({ext_header[0]})")
+	print(f"loaded data size       = {hex(header[6] - ext_header[0])} ({header[6] - ext_header[0]}) (implicit)")
+	print(f"show splash screen     = {hex(ext_header[1])}")
+	print(f"{hex(header[5] + ext_header[0])}")
+	
+	if (args.fixup):
+		with open(f"{args.file}.fixup-dump", "wb") as g:
+			f.seek(fixupOffset, 0)
+			g.write(f.read(fixupSize))
 	
 	f.close()
 
