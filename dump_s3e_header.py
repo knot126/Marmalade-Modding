@@ -31,7 +31,11 @@ def hexdump(data, perline = 16):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("file", help="An uncompressed s3e file to parse")
-	parser.add_argument("--fixup", help="Dump the fixup table into a .fixup file", action="store_true")
+	parser.add_argument("--fixup", help="Dump the section into a file", action="store_true")
+	parser.add_argument("--config", help="Dump the section into a file", action="store_true")
+	parser.add_argument("--code", help="Dump the section into a file", action="store_true")
+	parser.add_argument("--extra", help="Dump the section into a file", action="store_true")
+	parser.add_argument("--sig", help="Dump the section into a file", action="store_true")
 	args = parser.parse_args()
 	
 	f = open(args.file, "rb")
@@ -56,8 +60,19 @@ def main():
 		print(f"arch         = {hex(header_short[2 * 2 + 1] & 0xff)}")
 		print(f"vfp          = {hex(header_short[2 * 2 + 1] >> 8)}")
 	fixupOffset = header[3]
-	print(f"fixupOffset  = {hex(fixupOffset)}")
 	fixupSize = header[4]
+	codeOffset   = header[5]
+	codeFileSize = header[6]
+	codeMemSize  = header[7]
+	sigOffset    = header[8]
+	sigSize      = header[9]
+	entryOffset  = header[10]
+	configOffset = header[11]
+	configSize   = header[12]
+	baseAddrOrig = header[13]
+	extraOffset  = header[14]
+	extraSize    = header[15]
+	print(f"fixupOffset  = {hex(fixupOffset)}")
 	print(f"fixupSize    = {hex(fixupSize)}")
 	print(f"codeOffset   = {hex(header[5])}")
 	print(f"codeFileSize = {hex(header[6])}")
@@ -81,12 +96,31 @@ def main():
 	print(f"loaded code size       = {hex(ext_header[0])} ({ext_header[0]})")
 	print(f"loaded data size       = {hex(header[6] - ext_header[0])} ({header[6] - ext_header[0]}) (implicit)")
 	print(f"show splash screen     = {hex(ext_header[1])}")
-	print(f"{hex(header[5] + ext_header[0])}")
 	
 	if (args.fixup):
 		with open(f"{args.file}.fixup-dump", "wb") as g:
 			f.seek(fixupOffset, 0)
 			g.write(f.read(fixupSize))
+	
+	if (args.code):
+		with open(f"{args.file}.code-dump", "wb") as g:
+			f.seek(codeOffset, 0)
+			g.write(f.read(codeSize))
+	
+	if (args.sig):
+		with open(f"{args.file}.sig-dump", "wb") as g:
+			f.seek(sigOffset, 0)
+			g.write(f.read(sigSize))
+	
+	if (args.config):
+		with open(f"{args.file}.config-dump", "wb") as g:
+			f.seek(configOffset, 0)
+			g.write(f.read(configSize))
+	
+	if (args.extra):
+		with open(f"{args.file}.extra-dump", "wb") as g:
+			f.seek(extraOffset, 0)
+			g.write(f.read(extraSize))
 	
 	f.close()
 

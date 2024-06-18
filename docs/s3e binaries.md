@@ -32,6 +32,8 @@ struct s3eHeader {
 
 If `(version >> 16) & 0xff` is not zero then version is `major.minor.patch` (major << 16 | minor << 8 | patch), arch is actually `arch & 0xff` and `arch >> 8` stores if the app requires a floating point unit. In the other case, the version is `major.minor` (major << 8 | minor) and arch is the actual arch value.
 
+Note that the code section is actually split into the actual code section and the data section. The extended header contains the size of the actual code section.
+
 This seems to be followed by the extended header.
 
 ### Extended Header
@@ -39,10 +41,12 @@ This seems to be followed by the extended header.
 ```c
 struct s3eExtendedHeader {
 	int extHeaderSize; // size of extended header
-	int loadedCodeSize;
+	int realCodeSize; // offset of the data section relative to code section start
 	int unknown2; // Seems like it only controls if an app splash is shown on startup
 };
 ```
+
+## Fixup table format
 
 ## See also
 
