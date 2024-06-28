@@ -5,6 +5,7 @@ Print out basic info about a uncompressed s3e's header
 
 import struct
 import argparse
+from FileStream import FileStream
 
 def hexdump(data, perline = 16):
 	"""
@@ -38,7 +39,7 @@ def main():
 	parser.add_argument("--sig", help="Dump the section into a file", action="store_true")
 	args = parser.parse_args()
 	
-	f = open(args.file, "rb")
+	f = FileStream(args.file, "rb")
 	
 	# Basic header
 	basic_bytes = f.read(0x40)
@@ -86,6 +87,9 @@ def main():
 	print(f"extraOffset  = {hex(header[14])}")
 	print(f"extraSize    = {hex(header[15])}")
 	
+	print()
+	print(f"bss size = {hex(codeMemSize - codeFileSize)}")
+	
 	# Extended header
 	print(f"\n *** EXTENDED HEADER *** ")
 	
@@ -98,29 +102,71 @@ def main():
 	print(f"show splash screen     = {hex(ext_header[1])}")
 	
 	if (args.fixup):
-		with open(f"{args.file}.fixup-dump", "wb") as g:
-			f.seek(fixupOffset, 0)
-			g.write(f.read(fixupSize))
+		symbols = []
+		
+		print(" *** FIXUP CONTENTS *** ")
+		f.setpos(fixupOffset)
+		
+		while (f.getpos() < fixupOffset + fixupSize):
+			fixupSectionOffset = f.getpos()
+			fixupSectionType = f.readUInt32()
+			fixupSectionSize = f.readUInt32() - 8
+			
+			match fixupSectionType:
+				case 0:
+					symbolCount = f.readUInt16()
+					
+					print(f"Have {symbolCount} symbol names:")
+					
+					for i in range(symbolCount):
+						newSymbol = f.readString()
+						symbols.append(newSymbol)
+						print(f" - [{i}] {newSymbol}")
+						# input()
+					
+					print(f"Extra int at the end: {f.readUInt32()}")
+				case 2 | 3 | 4: # These all look the same to me ... see IwS3ERead from iOS .o file
+					extRelocCount = f.readUInt32()
+					
+					print(f"Have {extRelocCount} external relocs")
+					
+					for i in range(extRelocCount):
+						hi = f.readUInt16()
+						lo = f.readUInt16()
+						offset = (hi << 16) | (lo)
+						symbolIndex = f.readUInt16()
+						
+						print(f" + {hex(offset)} -> {symbols[symbolIndex]} ({symbolIndex})")
+				case _:
+					print(f"Skip unknown section type {fixupSectionType} of size {fixupSectionSize} at file pos {hex(f.getpos())}")
+					f.read(fixupSectionSize)
+			
+			unreadBytes = fixupSectionOffset + fixupSectionSize + 8 - f.getpos()
+			
+			if (unreadBytes != 0):
+				print(f"Note: still had {hex(unreadBytes)} unread bytes at end of section parsing...")
+			
+			f.setpos(fixupSectionOffset + fixupSectionSize + 8)
 	
-	if (args.code):
-		with open(f"{args.file}.code-dump", "wb") as g:
-			f.seek(codeOffset, 0)
-			g.write(f.read(codeSize))
-	
-	if (args.sig):
-		with open(f"{args.file}.sig-dump", "wb") as g:
-			f.seek(sigOffset, 0)
-			g.write(f.read(sigSize))
-	
-	if (args.config):
-		with open(f"{args.file}.config-dump", "wb") as g:
-			f.seek(configOffset, 0)
-			g.write(f.read(configSize))
-	
-	if (args.extra):
-		with open(f"{args.file}.extra-dump", "wb") as g:
-			f.seek(extraOffset, 0)
-			g.write(f.read(extraSize))
+# 	if (args.code):
+# 		with open(f"{args.file}.code-dump", "wb") as g:
+# 			f.seek(codeOffset, 0)
+# 			g.write(f.read(codeSize))
+# 	
+# 	if (args.sig):
+# 		with open(f"{args.file}.sig-dump", "wb") as g:
+# 			f.seek(sigOffset, 0)
+# 			g.write(f.read(sigSize))
+# 	
+# 	if (args.config):
+# 		with open(f"{args.file}.config-dump", "wb") as g:
+# 			f.seek(configOffset, 0)
+# 			g.write(f.read(configSize))
+# 	
+# 	if (args.extra):
+# 		with open(f"{args.file}.extra-dump", "wb") as g:
+# 			f.seek(extraOffset, 0)
+# 			g.write(f.read(extraSize))
 	
 	f.close()
 
