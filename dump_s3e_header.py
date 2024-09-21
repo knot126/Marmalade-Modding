@@ -32,16 +32,19 @@ def hexdump(data, perline = 16):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("file", help="An uncompressed s3e file to parse")
-	parser.add_argument("--fixup", help="Dump the section into a file", action="store_true")
-	parser.add_argument("--config", help="Dump the section into a file", action="store_true")
-	parser.add_argument("--code", help="Dump the section into a file", action="store_true")
-	parser.add_argument("--extra", help="Dump the section into a file", action="store_true")
-	parser.add_argument("--sig", help="Dump the section into a file", action="store_true")
+	parser.add_argument("--fixup", help="", action="store_true")
+	parser.add_argument("--config", help="", action="store_true")
+	parser.add_argument("--code", help="", action="store_true")
+	parser.add_argument("--extra", help="", action="store_true")
+	parser.add_argument("--sig", help="", action="store_true")
+	parser.add_argument("--assume-no-ext-header", help="", action="store_true")
 	args = parser.parse_args()
 	
 	f = FileStream(args.file, "rb")
 	
 	# Basic header
+	# TODO: This was a really shit way of doing this, should just read from the
+	# stream instead of memory view nonsense. See incomplete s3e-to-elf.
 	basic_bytes = f.read(0x40)
 	mv = memoryview(basic_bytes)
 	header = mv.cast("I")
@@ -60,6 +63,7 @@ def main():
 	else:
 		print(f"arch         = {hex(header_short[2 * 2 + 1] & 0xff)}")
 		print(f"vfp          = {hex(header_short[2 * 2 + 1] >> 8)}")
+	version = header[1]
 	fixupOffset = header[3]
 	fixupSize = header[4]
 	codeOffset   = header[5]
@@ -88,18 +92,19 @@ def main():
 	print(f"extraSize    = {hex(header[15])}")
 	
 	print()
-	print(f"bss size = {hex(codeMemSize - codeFileSize)}")
+	print(f"(implicit) bss size = {hex(codeMemSize - codeFileSize)}")
 	
 	# Extended header
-	print(f"\n *** EXTENDED HEADER *** ")
-	
-	ext_length = memoryview(f.read(4)).cast("I")[0]
-	print(f"extended header length = {hex(ext_length)}")
-	ext_header = memoryview(f.read(ext_length - 4)).cast("I")
-	# note: these are both in the code section, for some reason
-	print(f"loaded code size       = {hex(ext_header[0])} ({ext_header[0]})")
-	print(f"loaded data size       = {hex(header[6] - ext_header[0])} ({header[6] - ext_header[0]}) (implicit)")
-	print(f"show splash screen     = {hex(ext_header[1])}")
+	if (not args.assume_no_ext_header):
+		print(f"\n *** EXTENDED HEADER *** ")
+		
+		ext_length = memoryview(f.read(4)).cast("I")[0]
+		print(f"extended header length = {hex(ext_length)}")
+		ext_header = memoryview(f.read(ext_length - 4)).cast("I")
+		# note: these are both in the code section, for some reason
+		print(f"loaded code size       = {hex(ext_header[0])} ({ext_header[0]})")
+		print(f"loaded data size       = {hex(header[6] - ext_header[0])} ({header[6] - ext_header[0]}) (implicit)")
+		print(f"show splash screen     = {hex(ext_header[1])}")
 	
 	if (args.fixup):
 		symbols = []
@@ -157,12 +162,16 @@ def main():
 # 		with open(f"{args.file}.sig-dump", "wb") as g:
 # 			f.seek(sigOffset, 0)
 # 			g.write(f.read(sigSize))
-# 	
-# 	if (args.config):
-# 		with open(f"{args.file}.config-dump", "wb") as g:
-# 			f.seek(configOffset, 0)
-# 			g.write(f.read(configSize))
-# 	
+	
+	if (args.config):
+		print(" *** CONFIG FILE *** ")
+		# Not sure exactly what versions this quirk applies to
+		if version < 0x1005:
+			f.setpos(configOffset - configSize)
+		else:
+			f.setpos(configOffset)
+		print(f.read(configSize).decode("latin-1"))
+	
 # 	if (args.extra):
 # 		with open(f"{args.file}.extra-dump", "wb") as g:
 # 			f.seek(extraOffset, 0)
