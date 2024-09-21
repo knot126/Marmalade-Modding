@@ -37,7 +37,6 @@ def main():
 	parser.add_argument("--code", help="", action="store_true")
 	parser.add_argument("--extra", help="", action="store_true")
 	parser.add_argument("--sig", help="", action="store_true")
-	parser.add_argument("--assume-no-ext-header", help="", action="store_true")
 	args = parser.parse_args()
 	
 	f = FileStream(args.file, "rb")
@@ -95,7 +94,9 @@ def main():
 	print(f"(implicit) bss size = {hex(codeMemSize - codeFileSize)}")
 	
 	# Extended header
-	if (not args.assume_no_ext_header):
+	# not sure what version ext headers were introduced in but this shall do for
+	# now
+	if (version > 0x1004 and version != 0x10000):
 		print(f"\n *** EXTENDED HEADER *** ")
 		
 		ext_length = memoryview(f.read(4)).cast("I")[0]
