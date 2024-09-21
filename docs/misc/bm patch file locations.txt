@@ -1,0 +1,31 @@
+# 1 XXX
+0xDF5326  00 -> 01
+0xDF545A  00 -> 01
+
+# 2 XXX
+0xDD45A2  00 00 a0 e3  1e ff 2f e1
+
+# 3 XXX
+0xD535A2  1e ff 2f e1
+0xD5239A  05 00 a0 e3  1e ff 2f e1
+
+0xD2823A  01 00 a0 e3  1e ff 2f e1
+
+# 4 - more level energy cost stuff WORKS
+# cost functions
+0xE08B22  00 00 a0 e3  1e ff 2f e1
+0xE08BCE  00 00 a0 e3  1e ff 2f e1
+0xE08C7A  00 00 a0 e3  1e ff 2f e1
+# can play for free functions
+0xE089D6  01 00 a0 e3  1e ff 2f e1
+
+# 5 - island should be locked not ignoring stars func patch XXX
+0xE09BC6  00 60 a0 c3
+
+# 6 - starThreshold - only kindof works XXX
+# would be better off as mov r0,#0x0 but whatever
+0xDE427A  01 00 a0 e3  1e ff 2f e1
+0xDF9B8A  01 00 a0 e3  1e ff 2f e1
+
+# 7 - unlockThresholdCost
+0xDE42CA  00 00 a0 e3  1e ff 2f e1

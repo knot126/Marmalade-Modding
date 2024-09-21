@@ -7,6 +7,8 @@ import struct
 import argparse
 from FileStream import FileStream
 
+MAX_INTERNEL_RELOCS_TO_PRINT = 1024
+
 def hexdump(data, perline = 16):
 	"""
 	Generate a hexdump as a string
@@ -127,10 +129,23 @@ def main():
 					for i in range(symbolCount):
 						newSymbol = f.readString()
 						symbols.append(newSymbol)
-						print(f" - [{i}] {newSymbol}")
-						# input()
+						print(f" * [{i}] {newSymbol}")
 					
 					print(f"Extra int at the end: {f.readUInt32()}")
+				
+				case 1:
+					intRelocCount = f.readUInt32()
+					
+					print(f"Have {intRelocCount} internal relocations:")
+					
+					if (intRelocCount > MAX_INTERNEL_RELOCS_TO_PRINT):
+						print("[too many internal relocs to print]")
+					
+					for i in range(intRelocCount):
+						offset = f.readUInt32()
+						if (intRelocCount <= MAX_INTERNEL_RELOCS_TO_PRINT):
+							print(f" - {hex(offset)}")
+				
 				case 2 | 3 | 4: # These all look the same to me ... see IwS3ERead from iOS .o file
 					extRelocCount = f.readUInt32()
 					
@@ -143,6 +158,7 @@ def main():
 						symbolIndex = f.readUInt16()
 						
 						print(f" + {hex(offset)} -> {symbols[symbolIndex]} ({symbolIndex})")
+				
 				case _:
 					print(f"Skip unknown section type {fixupSectionType} of size {fixupSectionSize} at file pos {hex(f.getpos())}")
 					f.read(fixupSectionSize)
