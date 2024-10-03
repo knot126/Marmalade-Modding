@@ -34,7 +34,7 @@ def hexdump(data, perline = 16):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("file", help="An uncompressed s3e file to parse")
-	parser.add_argument("--fixup", help="Print contents of the relocaction information section", action="store_true")
+	parser.add_argument("--fixup", help="Print contents of the relocaction information section (very large!)", action="store_true")
 	parser.add_argument("--config", help="Print embedded icf", action="store_true")
 	# parser.add_argument("--code", help="", action="store_true")
 	# parser.add_argument("--extra", help="", action="store_true")
