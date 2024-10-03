@@ -93,12 +93,12 @@ def main():
 	else:
 		print(f"version      = {hex(s3e_version)} ({s3e_version >> 16}.{(s3e_version >> 8) & 0xff}.{s3e_version & 0xff})")
 	
-	print(f"flags        = {bin(s3e_flags)}")
+	print(f"flags        = {bin(s3e_flags)} ({', '.join(interpret_s3e_flags(s3e_flags))})")
 	
 	if (old_format):
-		print(f"arch         = {hex(s3e_arch)}")
+		print(f"arch         = {hex(s3e_arch)} ({interpret_s3e_arch(s3e_arch)})")
 	else:
-		print(f"arch         = {hex(s3e_arch & 0xff)}")
+		print(f"arch         = {hex(s3e_arch & 0xff)} ({interpret_s3e_arch(s3e_arch)})")
 		print(f"vfp          = {hex(s3e_arch >> 8)}")
 	
 	print(f"fixupOffset  = {hex(s3e_fixupOffset)}")
@@ -142,7 +142,7 @@ def main():
 	if (args.fixup):
 		symbols = []
 		
-		print(" *** FIXUP CONTENTS *** ")
+		print("\n *** FIXUP CONTENTS *** ")
 		f.setpos(s3e_fixupOffset)
 		
 		while (f.getpos() < s3e_fixupOffset + s3e_fixupSize):
@@ -211,7 +211,7 @@ def main():
 # 			g.write(f.read(sigSize))
 	
 	if (args.config):
-		print(" *** CONFIG FILE *** ")
+		print("\n *** CONFIG FILE *** ")
 		# Not sure exactly what versions this quirk applies to
 		if s3e_version < 0x1005:
 			f.setpos(s3e_configOffset - s3e_configSize)
@@ -226,6 +226,19 @@ def main():
 # 			g.write(f.read(extraSize))
 	
 	f.close()
+
+def interpret_s3e_flags(flags):
+	KNOWN_FLAGS = ["debug", "gcc", "rvct", "pie", "64bit"]
+	result = []
+	
+	for i in range(len(KNOWN_FLAGS)):
+		if flags & (1 << i):
+			result.append(KNOWN_FLAGS[i])
+	
+	return result
+
+def interpret_s3e_arch(arch):
+	return ["ARMv4t", "ARMv4", "ARMv5t", "ARMv5te", "ARMv5tej", "ARMv6", "ARMv6k", "ARMv6t2", "ARMv6z", "x86", "PPC", "AMD64", "x86_64", "ARMv7a", "ARMv8a", "ARMv8a-aarch64", "NACL-x86_64"][arch]
 
 if (__name__ == "__main__"):
 	main()
