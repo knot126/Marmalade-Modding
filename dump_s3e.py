@@ -160,8 +160,6 @@ def main():
 						newSymbol = f.readString()
 						symbols.append(newSymbol)
 						print(f" * [{i}] {newSymbol}")
-					
-					print(f"Extra int at the end: {f.readUInt32()}")
 				
 				case 1:
 					intRelocCount = f.readUInt32()
