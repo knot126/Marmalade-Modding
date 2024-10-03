@@ -7,7 +7,7 @@ import struct
 import argparse
 from FileStream import FileStream
 
-MAX_INTERNEL_RELOCS_TO_PRINT = 1024
+MAX_INTERNAL_RELOCS_TO_PRINT = 1024
 
 def hexdump(data, perline = 16):
 	"""
@@ -34,88 +34,118 @@ def hexdump(data, perline = 16):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("file", help="An uncompressed s3e file to parse")
-	parser.add_argument("--fixup", help="", action="store_true")
-	parser.add_argument("--config", help="", action="store_true")
-	parser.add_argument("--code", help="", action="store_true")
-	parser.add_argument("--extra", help="", action="store_true")
-	parser.add_argument("--sig", help="", action="store_true")
+	parser.add_argument("--fixup", help="Print contents of the relocaction information section", action="store_true")
+	parser.add_argument("--config", help="Print embedded icf", action="store_true")
+	# parser.add_argument("--code", help="", action="store_true")
+	# parser.add_argument("--extra", help="", action="store_true")
+	# parser.add_argument("--sig", help="", action="store_true")
 	args = parser.parse_args()
 	
 	f = FileStream(args.file, "rb")
 	
 	# Basic header
-	# TODO: This was a really shit way of doing this, should just read from the
-	# stream instead of memory view nonsense. See incomplete s3e-to-elf.
-	basic_bytes = f.read(0x40)
-	mv = memoryview(basic_bytes)
-	header = mv.cast("I")
-	header_short = mv.cast("H")
+	s3e_magic = f.read(4)
 	
-	print(f" *** BASIC HEADER *** ")
-	print(f"ident        = {hex(header[0])} ({basic_bytes[0:4].decode('latin-1')})")
-	old_format = ((header[1] >> 0x10) & 0xff) == 0
-	if (old_format):
-		print(f"version      = {hex(header[1])} ({header[1] >> 12}.{header[1] & 0xff})")
-	else:
-		print(f"version      = {hex(header[1])} ({header[1] >> 16}.{(header[1] >> 8) & 0xff}.{header[1] & 0xff})")
-	print(f"flags        = {bin(header_short[2 * 2 + 0])}")
-	if (old_format):
-		print(f"arch         = {hex(header_short[2 * 2 + 1])}")
-	else:
-		print(f"arch         = {hex(header_short[2 * 2 + 1] & 0xff)}")
-		print(f"vfp          = {hex(header_short[2 * 2 + 1] >> 8)}")
-	version = header[1]
-	fixupOffset = header[3]
-	fixupSize = header[4]
-	codeOffset   = header[5]
-	codeFileSize = header[6]
-	codeMemSize  = header[7]
-	sigOffset    = header[8]
-	sigSize      = header[9]
-	entryOffset  = header[10]
-	configOffset = header[11]
-	configSize   = header[12]
-	baseAddrOrig = header[13]
-	extraOffset  = header[14]
-	extraSize    = header[15]
-	print(f"fixupOffset  = {hex(fixupOffset)}")
-	print(f"fixupSize    = {hex(fixupSize)}")
-	print(f"codeOffset   = {hex(header[5])}")
-	print(f"codeFileSize = {hex(header[6])}")
-	print(f"codeMemSize  = {hex(header[7])}")
-	print(f"sigOffset    = {hex(header[8])}")
-	print(f"sigSize      = {hex(header[9])}")
-	print(f"entryOffset  = {hex(header[10])}")
-	print(f"configOffset = {hex(header[11])}")
-	print(f"configSize   = {hex(header[12])}")
-	print(f"baseAddrOrig = {hex(header[13])}")
-	print(f"extraOffset  = {hex(header[14])}")
-	print(f"extraSize    = {hex(header[15])}")
+	if (s3e_magic != b"XE3U"):
+		print("Invalid s3e binary - maybe you need to decompress it first?")
+		return
 	
-	print()
-	print(f"(implicit) bss size = {hex(codeMemSize - codeFileSize)}")
+	f.setpos(0)
+	s3e_ident = f.readUInt32()
+	s3e_version = f.readUInt32()
+	s3e_flags = f.readUInt16()
+	s3e_arch = f.readUInt16()
+	s3e_fixupOffset = f.readUInt32()
+	s3e_fixupSize = f.readUInt32()
+	s3e_codeOffset = f.readUInt32()
+	s3e_codeFileSize = f.readUInt32()
+	s3e_codeMemSize = f.readUInt32()
+	s3e_sigOffset = f.readUInt32()
+	s3e_sigSize = f.readUInt32()
+	s3e_entryOffset = f.readUInt32()
+	s3e_configOffset = f.readUInt32()
+	s3e_configSize = f.readUInt32()
+	s3e_baseAddrOrig = f.readUInt32()
+	s3e_extraOffset = f.readUInt32()
+	s3e_extraSize = f.readUInt32()
 	
 	# Extended header
-	# not sure what version ext headers were introduced in but this shall do for
-	# now
-	if (version > 0x1004 and version != 0x10000):
+	# TODO: Find out what versions use extended header and read based on that
+	# instead of just guessing, though that works for now.
+	s3e_extHeaderSize = f.readUInt32()
+	s3e_dataOffset = None
+	s3e_isJuice = None
+	
+	if (s3e_extHeaderSize == 0xc):
+		# For some reason, the code section contains both code and data and the
+		# extra header contains the size of the real code section itself
+		s3e_dataOffset = f.readUInt32()
+		s3e_isJuice = f.readUInt32()
+	else:
+		s3e_extHeaderSize = None
+	
+	print(f" *** BASIC HEADER *** ")
+	print(f"ident        = {s3e_ident} ({s3e_magic.decode('latin-1')})")
+	old_format = ((s3e_version >> 0x10) & 0xff) == 0
+	
+	if (old_format):
+		print(f"version      = {hex(s3e_version)} ({s3e_version >> 12}.{s3e_version & 0xff})")
+	else:
+		print(f"version      = {hex(s3e_version)} ({s3e_version >> 16}.{(s3e_version >> 8) & 0xff}.{s3e_version & 0xff})")
+	
+	print(f"flags        = {bin(s3e_flags)}")
+	
+	if (old_format):
+		print(f"arch         = {hex(s3e_arch)}")
+	else:
+		print(f"arch         = {hex(s3e_arch & 0xff)}")
+		print(f"vfp          = {hex(s3e_arch >> 8)}")
+	
+	print(f"fixupOffset  = {hex(s3e_fixupOffset)}")
+	print(f"fixupSize    = {hex(s3e_fixupSize)}")
+	print(f"codeOffset   = {hex(s3e_codeOffset)}")
+	print(f"codeFileSize = {hex(s3e_codeFileSize)}")
+	print(f"codeMemSize  = {hex(s3e_codeMemSize)}")
+	print(f"sigOffset    = {hex(s3e_sigOffset)}")
+	print(f"sigSize      = {hex(s3e_sigSize)}")
+	print(f"entryOffset  = {hex(s3e_entryOffset)}")
+	print(f"configOffset = {hex(s3e_configOffset)}")
+	print(f"configSize   = {hex(s3e_configSize)}")
+	print(f"baseAddrOrig = {hex(s3e_baseAddrOrig)}")
+	print(f"extraOffset  = {hex(s3e_extraOffset)}")
+	print(f"extraSize    = {hex(s3e_extraSize)}")
+	
+	print()
+	
+	# TODO: Verify that s3e's without the extended header dont actually
+	# distinguish between code and data sections.
+	print(f"Section information:")
+	print(f" - has a data section: {'yes' if s3e_dataOffset != None else 'no'}")
+	
+	if s3e_dataOffset != None:
+		print(f" - code size = {hex(s3e_dataOffset)}")
+		print(f" - data size = {hex(s3e_codeFileSize - s3e_dataOffset)}")
+	else:
+		print(f" - code + data size = {hex(s3e_codeFileSize)}")
+	
+	print(f" - bss size = {hex(s3e_codeMemSize - s3e_codeFileSize)} (implicit)")
+	
+	# Extended header
+	if s3e_extHeaderSize != None:
 		print(f"\n *** EXTENDED HEADER *** ")
 		
-		ext_length = memoryview(f.read(4)).cast("I")[0]
-		print(f"extended header length = {hex(ext_length)}")
-		ext_header = memoryview(f.read(ext_length - 4)).cast("I")
-		# note: these are both in the code section, for some reason
-		print(f"loaded code size       = {hex(ext_header[0])} ({ext_header[0]})")
-		print(f"loaded data size       = {hex(header[6] - ext_header[0])} ({header[6] - ext_header[0]}) (implicit)")
-		print(f"show splash screen     = {hex(ext_header[1])}")
+		print(f"extended header length = {hex(s3e_extHeaderSize)}")
+		print(f"data segment offset    = {hex(s3e_dataOffset)}")
+		print(f"uses marmalade juice   = {hex(s3e_isJuice)}")
 	
+	# Print relocation information/fixups, if wanted
 	if (args.fixup):
 		symbols = []
 		
 		print(" *** FIXUP CONTENTS *** ")
-		f.setpos(fixupOffset)
+		f.setpos(s3e_fixupOffset)
 		
-		while (f.getpos() < fixupOffset + fixupSize):
+		while (f.getpos() < s3e_fixupOffset + s3e_fixupSize):
 			fixupSectionOffset = f.getpos()
 			fixupSectionType = f.readUInt32()
 			fixupSectionSize = f.readUInt32() - 8
@@ -138,12 +168,12 @@ def main():
 					
 					print(f"Have {intRelocCount} internal relocations:")
 					
-					if (intRelocCount > MAX_INTERNEL_RELOCS_TO_PRINT):
+					if (intRelocCount > MAX_INTERNAL_RELOCS_TO_PRINT):
 						print("[too many internal relocs to print]")
 					
 					for i in range(intRelocCount):
 						offset = f.readUInt32()
-						if (intRelocCount <= MAX_INTERNEL_RELOCS_TO_PRINT):
+						if (intRelocCount <= MAX_INTERNAL_RELOCS_TO_PRINT):
 							print(f" - {hex(offset)}")
 				
 				case 2 | 3 | 4: # These all look the same to me ... see IwS3ERead from iOS .o file
@@ -183,11 +213,12 @@ def main():
 	if (args.config):
 		print(" *** CONFIG FILE *** ")
 		# Not sure exactly what versions this quirk applies to
-		if version < 0x1005:
-			f.setpos(configOffset - configSize)
+		if s3e_version < 0x1005:
+			f.setpos(s3e_configOffset - s3e_configSize)
 		else:
-			f.setpos(configOffset)
-		print(f.read(configSize).decode("latin-1"))
+			f.setpos(s3e_configOffset)
+		
+		print(f.read(s3e_configSize).decode("latin-1"))
 	
 # 	if (args.extra):
 # 		with open(f"{args.file}.extra-dump", "wb") as g:
