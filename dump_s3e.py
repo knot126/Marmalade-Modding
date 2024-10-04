@@ -33,7 +33,7 @@ def hexdump(data, perline = 16):
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument("file", help="An uncompressed s3e file to parse")
+	parser.add_argument("file", help="An s3e file to parse")
 	parser.add_argument("--fixup", help="Print contents of the relocaction information section (very large!)", action="store_true")
 	parser.add_argument("--config", help="Print embedded icf", action="store_true")
 	# parser.add_argument("--code", help="", action="store_true")
@@ -41,13 +41,16 @@ def main():
 	# parser.add_argument("--sig", help="", action="store_true")
 	args = parser.parse_args()
 	
-	f = FileStream(args.file, "rb")
+	f = FileStream(args.file, "rb", True)
+	
+	if (f.isGzip()):
+		print("note: s3e is gzip compressed")
 	
 	# Basic header
 	s3e_magic = f.read(4)
 	
 	if (s3e_magic != b"XE3U"):
-		print("Invalid s3e binary - maybe you need to decompress it first?")
+		print(f"Invalid s3e binary.")
 		return
 	
 	f.setpos(0)
@@ -85,7 +88,7 @@ def main():
 		s3e_extHeaderSize = None
 	
 	print(f" *** BASIC HEADER *** ")
-	print(f"ident        = {s3e_ident} ({s3e_magic.decode('latin-1')})")
+	print(f"ident        = {hex(s3e_ident)} ({s3e_magic.decode('latin-1')})")
 	old_format = ((s3e_version >> 0x10) & 0xff) == 0
 	
 	if (old_format):
@@ -210,6 +213,7 @@ def main():
 	
 	if (args.config):
 		print("\n *** CONFIG FILE *** ")
+		
 		# Not sure exactly what versions this quirk applies to
 		if s3e_version < 0x1005:
 			f.setpos(s3e_configOffset - s3e_configSize)

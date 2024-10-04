@@ -1,16 +1,31 @@
 import struct
+import shutil
+import gzip
 
 class FileStream():
 	"""
-	Nice way to read binary files
+	Nice way to read binary files. Also transparently handles GZIP compressed
+	files.
 	"""
 	
-	def __init__(self, path, mode = "r+b"):
+	def __init__(self, path, mode = "r+b", handle_gzip = False):
 		self.f = open(path, mode)
 		self.endian = "<"
+		
+		if (handle_gzip):
+			if (mode != "rb"):
+				raise ValueError("FileStream's transparent Gzip handling is only available in binary read mode.")
+			
+			if (self.read(2) == b"\x1f\x8b"):
+				self.f = gzip.open(path, mode)
+			else:
+				self.setpos(0)
 	
 	def close(self):
 		self.f.close()
+	
+	def isGzip(self):
+		return type(self.f) == gzip.GzipFile
 	
 	def read(self, n):
 		"""Read n bytes"""
