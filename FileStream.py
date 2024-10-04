@@ -1,5 +1,4 @@
 import struct
-import shutil
 import gzip
 
 class FileStream():
