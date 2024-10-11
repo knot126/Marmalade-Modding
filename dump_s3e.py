@@ -240,7 +240,10 @@ def interpret_s3e_flags(flags):
 	return result
 
 def interpret_s3e_arch(arch):
-	return ["ARMv4t", "ARMv4", "ARMv5t", "ARMv5te", "ARMv5tej", "ARMv6", "ARMv6k", "ARMv6t2", "ARMv6z", "x86", "PPC", "AMD64", "x86_64", "ARMv7a", "ARMv8a", "ARMv8a-aarch64", "NACL-x86_64"][arch]
+	arch_name = arch & 0xff
+	arch_require_vfp = arch >> 8
+	
+	return ["ARMv4t", "ARMv4", "ARMv5t", "ARMv5te", "ARMv5tej", "ARMv6", "ARMv6k", "ARMv6t2", "ARMv6z", "x86", "PPC", "AMD64", "x86_64", "ARMv7a", "ARMv8a", "ARMv8a-aarch64", "NACL-x86_64"][arch_name] + (" (with VFP)" if arch_require_vfp else "")
 
 if (__name__ == "__main__"):
 	main()
