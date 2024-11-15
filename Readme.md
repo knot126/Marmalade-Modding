@@ -10,4 +10,4 @@ Some misc. utilities made while modding games made with the Marmalade SDK. You c
 
 ## Ghidra S3E loader
 
-An really really really [exprimental S3E loader](https://github.com/knot126/S3ELoader) for Ghidra is also available. You will need to compile it yourself for now!
+An really really really [exprimental S3E loader](https://github.com/knot126/S3ELoader) for Ghidra is also available.
