@@ -35,9 +35,11 @@ The iOS version of the loader is shippped as a static library in `<sdk install d
 
 ## Downloads
 
-* Marmalade SDK 5.0.1: https://download.informer.com/win-1193091066-a2e8f115-616c152b-b3229e101a7e85d717-bb08c9772d03f392c-3404983886-1308944358/marmalade-sdk-5.0.1-278131-windows.exe
-* Marmalade SDK 8.6.0: https://soft.mydiv.net/win/dlfile311922_68b49-Marmalade-SDK.html/marmalade-sdk-8.6.0-480999-windows.exe
-* Official patch to run without licence server: https://web.archive.org/web/20180530031815/https://support.madewithmarmalade.jp/hc/en-us/articles/360001338068-Patch-for-perpetual-usage-without-license-server
+* [Marmalade SDK 5.0.1](https://archive.org/download/marmalade-sdk-collection/marmalade-sdk-5.0.1-278131-windows.exe) ([Original URL](https://download.informer.com/win-1193091066-a2e8f115-616c152b-b3229e101a7e85d717-bb08c9772d03f392c-3404983886-1308944358/marmalade-sdk-5.0.1-278131-windows.exe))
+* [Marmalade SDK 7.6.0](https://web.archive.org/web/20150315201813/https://developer.madewithmarmalade.com/downloads/7.6/7.6.0/marmalade-sdk-7.6.0-425675-windows.exe) ([MacOS version](https://web.archive.org/web/20150315204015/https://developer.madewithmarmalade.com/downloads/7.6/7.6.0/marmalade-sdk-7.6.0-425675-mac.dmg))
+* [Marmalade SDK 8.6.0](https://archive.org/download/marmalade-sdk-collection/marmalade-sdk-8.6.0-480999-windows.exe) ([Original URL](https://soft.mydiv.net/win/dlfile311922_68b49-Marmalade-SDK.html/marmalade-sdk-8.6.0-480999-windows.exe))
+* [Official patch to run without licence server](https://web.archive.org/web/20180530031815/https://support.madewithmarmalade.jp/hc/en-us/articles/360001338068-Patch-for-perpetual-usage-without-license-server)
+* [Documentation for Marmalade 7.3.0 as a PDF](https://web.archive.org/web/20140806205727/http://docs.madewithmarmalade.com/download/attachments/917508/Marmalade_Documentation_730.pdf?version=2&modificationDate=1402329163000&api=v2)
 
 ## Other
 
