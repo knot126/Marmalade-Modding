@@ -1,6 +1,6 @@
 # Marmalade History and Resources
 
-Marmalade, formerly known as Airplay SDK, is a write once run anywhere platform.
+[Marmalade](https://en.wikipedia.org/wiki/Marmalade_(software)), formerly known as Airplay SDK, is a [write once run anywhere](https://en.wikipedia.org/wiki/Write_once,_run_anywhere) platform initially created by [Ideaworks](https://en.wikipedia.org/wiki/Ideaworks_Game_Studio) for early cell phone games, though was later used for many smartphone games.
 
 ## Notes
 
@@ -15,7 +15,7 @@ From [Book 1]:
 ## Run the SDK without a licence
 
 1. Install the SDK like normal.
-2. Follow the archived guide to patching Marmalade to run without a licence server.
+2. Install the [official patch to run without a licence server](https://web.archive.org/web/20180530031815/https://support.madewithmarmalade.jp/hc/en-us/articles/360001338068-Patch-for-perpetual-usage-without-license-server).
 3. Try to activate using a junk key and email. (This might not be needed.)
 4. Run the following command in the `s3e/bin` dir:
 
@@ -25,12 +25,13 @@ iwlicense.exe --verbose --activate --key=12345
 
 5. Done!
 
-(It seems like it's functionally a self-crack lol)
+## Loader with debug symbols
+
+The iOS version of the loader is shippped as a static library in `<sdk install dir>/s3e/loader/ios/<arch>/libs3e_debug.a` which contains complete debug symbols.
 
 ## Books
 
 1. *[Marmalade SDK Mobile Game Development Essentials](https://www.packtpub.com/product/marmalade-sdk-mobile-game-development-essentials/9781849693363)* (2012, published by Packt)
-
 
 ## Downloads
 
