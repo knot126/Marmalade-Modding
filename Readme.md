@@ -7,7 +7,7 @@ Some misc. utilities made while modding games made with the Marmalade SDK. You c
 * `dump_s3e.py`: Dump information about an S3E executable, including headers, the embedded config and relocation information.
 * `dzextract.py`: Tries to extract a `.dz` archive and generate a DZip configuration file. There is only limited support ATM, so using the official `dzip.exe` is recommended. (E.g. `dzip.exe -d <dz path>`)
 * `disable_sig_check.py`: Really basic script to patch out signature verification. Only works with Marmalade loader v4.40.0.
-* `group_split.py`: Split `.group.bin`
+* `group_split.py`: Split `.group.bin` into binary chunks.
 
 ## Ghidra S3E loader
 
