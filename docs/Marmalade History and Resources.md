@@ -15,14 +15,14 @@ From [Book 1]:
 ## Run the SDK without a licence
 
 1. Install the SDK like normal.
-2. Install the [official patch to run without a licence server](https://web.archive.org/web/20180530031815/https://support.madewithmarmalade.jp/hc/en-us/articles/360001338068-Patch-for-perpetual-usage-without-license-server).
-3. Try to activate using a junk key and email. (This might not be needed.)
-4. Run the following command in the `s3e/bin` dir:
+2. Try to activate using a junk key and email. (This might not be needed?)
+3. Using the old iwlicense.exe, run the following command in the `s3e/bin` dir:
 
 ```cmd
 iwlicense.exe --verbose --activate --key=12345
 ```
 
+4. Install the [official patch to run without a licence server](https://web.archive.org/web/20180530031815/https://support.madewithmarmalade.jp/hc/en-us/articles/360001338068-Patch-for-perpetual-usage-without-license-server).
 5. Done!
 
 ## Loader with debug symbols
